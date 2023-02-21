@@ -3,7 +3,7 @@ import random
 import math
 from pygame import mixer
 from collections import deque
-import queue
+from pygame import time
 
 # Initialize the pygame
 pygame.init()
@@ -11,17 +11,21 @@ pygame.init()
 # Create the screen
 screen = pygame.display.set_mode((800, 600))
 
-#Global variable to loop the game until it is quited
+#Global variable to loop the game until it is quFited
 global start_game
 start_game = True
 
-#Implementation of QUEUE 
+#Implementation of QUEUE
 # creating a deque to store the score numbers
 #score_queue = deque(maxlen=50)
 #q = queue.Queue()
 
+queue = []
+
+
 
 while start_game == True:
+    q=0
 
     start_game = False
 
@@ -49,7 +53,7 @@ while start_game == True:
     enemyY = []
     enemyX_change = []
     enemyY_change = []
-    no_of_enemies = 6
+    no_of_enemies = 8
 
     for i in range(no_of_enemies):
         enemyImg.append(pygame.image.load("monster.png"))
@@ -69,15 +73,18 @@ while start_game == True:
 
     # Score Value
     score_value = 0
-    font = pygame.font.Font('freesansbold.ttf', 32)
+    font = pygame.font.Font('ArialRound.ttf', 30)
     textX = 10
     textY = 10
 
     # Game-Over Text
-    game_over = pygame.font.Font('freesansbold.ttf', 64)
+    game_over = pygame.font.Font('ArialRound.ttf', 70)
 
     #Score list font
-    score_list = pygame.font.Font('freesansbold.ttf', 16)
+    score_list = pygame.font.Font('ArialRound.ttf', 35)
+
+    #Score list font
+    highscore = pygame.font.Font('ArialRound.ttf', 45)
 
     # Displaying player
     def player(x, y):
@@ -107,32 +114,37 @@ while start_game == True:
 
     # Displaying the score
     def show_score(x, y):
-        score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+        score = font.render("Score : " + str(score_value), True, (237, 210, 163))
         screen.blit(score, (x, y))
 
-    '''def show_highest_score(i,x,y):
-        score_l = score_list.render("->  " + str(q[i]), True, (255, 255, 255))
-        screen.blit(score_l, (x, y))'''
+    def sort(queue):
+        n = len(queue)
+        for i in range(n):
+            for j in range(0, n-i-1):
+                if queue[j] < queue[j+1]:
+                    queue[j], queue[j+1] = queue[j+1], queue[j]
+        return queue
 
     # Game_over screen
     def game_over_text(x, y):
-        over = game_over.render("GAME OVER !!!", True, (255, 255, 255))
+        over = game_over.render("Game Over", True, (189, 141, 253))
         screen.blit(over, (x, y))
+        pygame.time.delay(200)
+        high_s = highscore.render("High Score : ", True, (204, 102, 51))
+        screen.blit(high_s, (250, 250))
+        t = 280
+        p = 280
+        for z in range(len(queue)):
+            p += 40
+            score_l = score_list.render(f"{z+1})  {queue[z]}", True, (137, 209, 133))
+            screen.blit(score_l, (t, p))
+            #pygame.display.update()
 
-
-    #Selection Sort Algorithm for top 10 scores 
-    def selection_sort(queue):
-        n = len(queue)  
-        for i in range(n):
-            min = i
-            for j in range(i+1, n):
-                if queue[j] < queue[min]:
-                    min = j
-            queue[i], queue[min] = queue[min], queue[i]
-    
     # Game loop until QUIT
     running = True
     while running:
+        #clock = pygame.time.Clock
+        #dt = clock.tick(50)
 
         # Filling blackscreen
         screen.fill((0, 0, 0))
@@ -148,10 +160,10 @@ while start_game == True:
             # If keystroke is pressed , check whether is right or left:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    playerX_change = -1.5
+                    playerX_change = -2.5
 
                 if event.key == pygame.K_RIGHT:
-                    playerX_change = +1.5
+                    playerX_change = +2.5
 
                 if event.key == pygame.K_SPACE:
                     if bullet_state == "ready":
@@ -161,13 +173,13 @@ while start_game == True:
                         bullet(bulletX, bulletY)
 
                 if event.key == pygame.K_RETURN:
-                    start_game = True 
+                    start_game = True
                     running = False
 
                 # if event.key == pygame.K_q:
 
 
-                
+
                 if event.key == pygame.K_1:
                     playerImg = pygame.image.load("ufo-2.png")
                     bulletImg = pygame.image.load("bullet copy.png")
@@ -179,7 +191,7 @@ while start_game == True:
                 if event.key == pygame.K_3:
                     playerImg = pygame.image.load("spaceship.png")
                     bulletImg = pygame.image.load("bullets.png")
-    
+
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     playerX_change = 0
@@ -195,20 +207,21 @@ while start_game == True:
         # Movements of enemy
         for i in range(no_of_enemies):
             if enemyY[i] > 450:
+
                 for j in range(no_of_enemies):
                     enemyY[j] = 2000
 
-                game_over_text(200, 250)
+                while q==0:
+                    queue.append(score_value)
+                    q+=1
+                sort(queue)
+                game_over_text(200,150)
+                #Adding each value in queue
 
-                #score_queue = selection_sort(score_queue)
-                #sc = font.render("Highest Scores: ", True, (255, 255, 255))
-                #screen.blit(sc, (600, 380))
-                #for i in range(5):
-                #    show_highest_score(i,600,400)
-                    
                 break
+
             enemyX[i] += enemyX_change[i]
-            xspeed_of_enemies = .7
+            xspeed_of_enemies = 2
             if enemyX[i] <= 0:
                 if score_value <= 25:
                     enemyX_change[i] = +xspeed_of_enemies
@@ -248,7 +261,7 @@ while start_game == True:
                 else:
                     enemyX_change[i] = -(xspeed_of_enemies + 1.5)
                     enemyY[i] += 30
-                    
+
             # Collision
             collision = is_collision(enemyX[i], enemyY[i], bulletX, bulletY)
             if collision:
@@ -275,8 +288,4 @@ while start_game == True:
         pygame.display.update()
 
     #Adding each value in queue
-    #q.append(score_value)
-
-    
-
-    
+    # queue.append(score_value)
